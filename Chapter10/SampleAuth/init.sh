@@ -32,19 +32,19 @@ aws s3 mb s3://$BUCKET
 
 # Create DynamoDB Tables
 echo "Creating DynamoDB Table $DDB_TABLE begin..."
-aws dynamodb create-table --table-name HK_Cogs --attribute-definitions AttributeName=email,AttributeType=S --key-schema AttributeName=email,KeyType=HASH --provisioned-throughput ReadCapacityUnits=5,WriteCapacityUnits=5 --region us-east-1
-echo "Creating DynamoDB Table HK_Cogs end (creation still in progress)"
+aws dynamodb create-table --table-name $DDB_TABLE --attribute-definitions AttributeName=email,AttributeType=S --key-schema AttributeName=email,KeyType=HASH --provisioned-throughput ReadCapacityUnits=5,WriteCapacityUnits=5 --region us-east-1
+echo "Creating DynamoDB Table $DDB_TABLE end (creation still in progress)"
 
 
 # Create Cognito Identity Pool
-IDENTITY_POOL_ID=$(aws cognito-identity list-identity-pools --max-results 1 --query 'IdentityPools[?IdentityPoolName == `'HK_Auth'`].IdentityPoolId' --output text --region us-east-1)
+IDENTITY_POOL_ID=$(aws cognito-identity list-identity-pools --max-results 1 --query 'IdentityPools[?IdentityPoolName == `'$IDENTITY_POOL_NAME'`].IdentityPoolId' --output text --region us-east-1)
 if [ -z "$IDENTITY_POOL_ID" ]; then
-	echo "Creating Cognito Identity Pool HK_Auth begin..."
-	IDENTITY_POOL_ID=$(aws cognito-identity create-identity-pool --identity-pool-name HK_Auth --allow-unauthenticated-identities --developer-provider-name $DEVELOPER_PROVIDER_NAME --query 'IdentityPoolId' --output text --region us-east-1)
+	echo "Creating Cognito Identity Pool $IDENTITY_POOL_NAME begin..."
+	IDENTITY_POOL_ID=$(aws cognito-identity create-identity-pool --identity-pool-name $IDENTITY_POOL_NAME --allow-unauthenticated-identities --developer-provider-name $DEVELOPER_PROVIDER_NAME --query 'IdentityPoolId' --output text --region us-east-1)
 	echo "Identity Pool Id: $IDENTITY_POOL_ID"
-	echo "Creating Cognito Identity Pool HK_Auth end"
+	echo "Creating Cognito Identity Pool $IDENTITY_POOL_NAME end"
 else
-  echo "Using previous identity pool with name HK_Auth and id $IDENTITY_POOL_ID"
+  echo "Using previous identity pool with name $IDENTITY_POOL_NAME and id $IDENTITY_POOL_ID"
 fi
 
 
@@ -125,3 +125,7 @@ cd ..
 
 
 ./deploy.sh
+
+
+
+
