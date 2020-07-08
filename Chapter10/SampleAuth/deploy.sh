@@ -16,19 +16,19 @@ fi
 
 # Read other configuration from config.json
 REGION=$(jq -r '.REGION' config.json)
-CLI_PROFILE=$(jq -er '.CLI_PROFILE' config.json)
+# CLI_PROFILE=$(jq -er '.CLI_PROFILE' config.json)
 # Get jq return code set by the -e option
-CLI_PROFILE_RC=$?
+# CLI_PROFILE_RC=$?
 BUCKET=$(jq -r '.BUCKET' config.json)
 MAX_AGE=$(jq -r '.MAX_AGE' config.json)
 IDENTITY_POOL_ID=$(jq -r '.IDENTITY_POOL_ID' config.json)
 DEVELOPER_PROVIDER_NAME=$(jq -r '.DEVELOPER_PROVIDER_NAME' config.json)
 
 #if a CLI Profile name is provided... use it.
-if [[ $CLI_PROFILE_RC == 0 ]]; then
-  echo "Setting session CLI profile to $CLI_PROFILE"
-  export AWS_DEFAULT_PROFILE=$CLI_PROFILE
-fi
+# if [[ $CLI_PROFILE_RC == 0 ]]; then
+#   echo "Setting session CLI profile to $CLI_PROFILE"
+#   export AWS_DEFAULT_PROFILE=$CLI_PROFILE
+# fi
 
 echo "Updating Lambda functions..."
 
@@ -37,13 +37,10 @@ cd fn
 # Updating Lambda Functions
 for f in $(ls -1); do
   echo "Updating function $f begin..."
-  cp ../config.json $f/
-  cp -R ../lib $f/
+  cp ../config.json $f cp -R ../lib $f
   cd $f
-  zip -r $f.zip index.js config.json lib/
-  aws lambda update-function-code --function-name ${f} \
-      --zip-file fileb://${f}.zip \
-	  	--region $REGION
+  zip -r $f.zip index.js config.json lib
+  aws lambda update-function-code --function-name ${f} --zip-file fileb://${f}.zip --region $REGION
   cd ..
   echo "Updating function $f end"
 done
@@ -62,10 +59,7 @@ mkdir edit/js
 
 for f in $(ls -1 *.* js/*.*); do
   echo "Updating $f begin..."
-  sed -e "s/<REGION>/$REGION/g" \
-      -e "s/<IDENTITY_POOL_ID>/$IDENTITY_POOL_ID/g" \
-      -e "s/<DEVELOPER_PROVIDER_NAME>/$DEVELOPER_PROVIDER_NAME/g" \
-      $f > edit/$f
+  sed -e "s/<REGION>/$REGION/g" -e "s/<IDENTITY_POOL_ID>/$IDENTITY_POOL_ID/g" -e "s/<DEVELOPER_PROVIDER_NAME>/$DEVELOPER_PROVIDER_NAME/g" $f > edit/$f
   echo "Updating $f end"
 done
 echo "Updating www content end"
